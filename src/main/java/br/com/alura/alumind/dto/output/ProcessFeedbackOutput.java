@@ -6,10 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import br.com.alura.alumind.model.Sentiment;
 
-public record FeedbackOutput (
+public record ProcessFeedbackOutput (
 	Long id,
-	String feedback,
 	Sentiment sentiment,
-	@JsonProperty("requested_features") List<FeatureRequestOutput> requestedFeatures,
-	String customResponse
+	@JsonProperty("requested_features") List<FeatureRequestOutput> requestedFeatures
 ) { }
