@@ -1,0 +1,43 @@
+package br.com.alura.alumind.error.handler;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+
+import br.com.alura.alumind.error.exception.ErrorResponse;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new TreeMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            var fieldName = ((FieldError) error).getField();
+            var errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        var error = ErrorResponse.badRequest().setMessage(errors.toString());
+        return ResponseEntity.badRequest().body(error);
+    }
+
+	@ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+    	var error = ErrorResponse.status(ex.getStatusCode()).setMessage(ex.getReason());
+        return ResponseEntity.status(ex.getStatusCode()).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneralException(Exception ex) {
+    	ex.printStackTrace();
+    	var error = ErrorResponse.internalServerError().setMessage(String.format("Um erro inesperado ocorreu: %s", ex.getMessage()));
+        return ResponseEntity.internalServerError().body(error);
+    }
+
+}
