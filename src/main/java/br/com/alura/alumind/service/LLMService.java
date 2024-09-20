@@ -61,51 +61,63 @@ public class LLMService {
 	}
 
 	private LLMRequest getBody(String content) {
-		return new LLMRequest("gpt-3.5-turbo", List.of(new Message("user", content)));
+		return new LLMRequest("gpt-4o", List.of(new Message("user", content)));
 	}
 
 	private String getIsSpamContent(String feedback) {
-		return """
-				Determine se o seguinte feedback é um SPAM ou não. Um feedback pode ser considerado um é SPAM caso ele tenha conteúdo agressivo ou seu conteúdo não tem sentido em relação a startup Alumind.
-				A seguir, uma preve descrição da plataforma Alumind, para que você possa determinar se o feedback faz ou não sentido com a plataforma:
-				A Alumind é uma startup que oferece um aplicativo focado em bem-estar e saúde mental, proporcionando aos usuários acesso a meditações guiadas, sessões de terapia, e conteúdos educativos sobre saúde mental.
-				Você deve retornar somente as strings "SPAM" e "NAO_SPAM", sem absolutamente nenhum texto além de alguma destas strings.
+	    return """
+	            Determine se o seguinte feedback é um SPAM ou NAO_SPAM.
+	            Um feedback pode ser considerado SPAM caso ele tenha:
+	            - Conteúdo agressivo;
+	            - Linguagem promocional;
+	            - Links irrelevantes ou externos;
+	            - Conteúdo que não faça sentido em relação à startup Alumind;
+	            - Dentre outros motivos que caracterizam SPAM.
 
-				Feedback: "%s"
-			   """.formatted(feedback);
+	            Aqui está uma breve descrição da Alumind, para ajudar você a determinar se o feedback faz ou não sentido:
+	            A Alumind é uma startup que oferece um aplicativo focado em bem-estar e saúde mental. Proporcionamos aos usuários acesso a meditações guiadas, sessões de terapia e conteúdos educativos sobre saúde mental.
+
+	            Exemplo:
+	            - Um feedback sobre a funcionalidade de meditações guiadas faz sentido;
+	            - Um feedback que promova produtos de beleza ou inclua links irrelevantes não faz sentido.
+
+	            Retorne somente "SPAM" ou "NAO_SPAM", sem absolutamente nenhum texto além dessas palavras.
+
+	            Feedback: "%s"
+	           """.formatted(feedback);
 	}
 
 	private String getAnalyzeFeedbackContent(String feedback, Set<String> functionalityCodes) {
-		return """
-				Através deste feedback:
-				"%s"
+	    return """
+	            Através deste feedback:
+	            "%s"
 
-				Monte o seguinte Json:
-				{
-					"sentiment": (( Determine se o sentimento do usuário no feedback é "POSITIVO", "NEGATIVO" ou "INCONCLUSIVO" e atribua o valores apropriado no campo sentiment )),
-					"requestedFeatures": (( O feedback pode conter uma ou mais funcionalidades sugeridas. Identifique-as, caso haja, e forneça um código (escolha entre as opções em uma lista fornecida, caso não haja códigos ou nenhum dos códigos fornecidos seja apropriado, elabore um novo código seguindo os padrões) e uma descrição do porquê a funcionalidade é importante ))
-						[
-							{
-								"code": (( Por exemplo: "MELHORAR_DESEMPENHO", a lista de códigos disponíveis é a seguinte (reforçando, caso não haja códigos ou nenhum dos fornecidos seja apropriado, elabore um novo código) %s )),
-								"reason": (( Por exemplo: "O usuário gostaria de que a tela inicial carregasse mais rápido" ))
-							}
-						]
-					"customResponse": (( Você deve gerar uma resposta personalizada para o feedback, criando uma mensagem a partir do sentimento identificado e das possíveis melhorias propostas no feedback. Por exemplo: "Obrigado pelo seu feedback positivo! Ficamos felizes em saber que você está gostando do Alumind. Vamos considerar sua sugestão de facilitar a edição do perfil para futuras atualizações." )) 
-				}
+	            Monte o seguinte Json:
+	            {
+	                "sentiment": (( Determine se o sentimento do usuário no feedback é "POSITIVO" (Se o feedback conter elogios ou satisfação), "NEGATIVO" (Se o feedback incluir reclamações ou frustrações) ou "INCONCLUSIVO" (Se o sentimento não for claro ou for neutro) e atribua o valor apropriado no campo sentiment )),
+	                "requestedFeatures": (( O feedback pode conter uma ou mais funcionalidades sugeridas. Identifique-as, caso haja, e forneça um código (escolha entre as opções em uma lista fornecida: %s. Caso nenhum dos códigos fornecidos seja apropriado, elabore um novo código seguindo os padrões, como "MELHORAR_DESEMPENHO". O código deve ser curto, descritivo e em letras maiúsculas) e uma descrição do porquê a funcionalidade é importante. Se o feedback não contiver nenhuma sugestão de funcionalidade ou se for muito vago, retorne uma lista vazia no JSON ))
+	                    [
+	                        {
+	                            "code": (( Por exemplo: "MELHORAR_DESEMPENHO" )),
+	                            "reason": (( Por exemplo: "O usuário gostaria de que a tela inicial carregasse mais rápido" ))
+	                        }
+	                    ]
+	                "customResponse": (( Você deve gerar uma resposta personalizada para o feedback, criando uma mensagem a partir do sentimento identificado e das possíveis melhorias propostas no feedback. Por exemplo: "Obrigado pelo seu feedback positivo! Ficamos felizes em saber que você está gostando do Alumind. Vamos considerar sua sugestão de facilitar a edição do perfil para futuras atualizações." )) 
+	            }
 
-				Um exemplo de Json é o seguinte:
-				{
-					 "sentiment": "POSITIVO",
-					 "requestedFeatures": [
-						 {
-							 "code": "EDITAR_PERFIL",
-							 "reason": "O usuário gostaria de realizar a edição do próprio perfil"
-						 }
-					 ],
-					"customResponse": "Obrigado pelo seu feedback positivo! Ficamos felizes em saber que você está gostando do Alumind. Vamos considerar sua sugestão de facilitar a edição do perfil para futuras atualizações."
-				}
-				
-				Retorne somente o Json, sem absolutamente nenhum texto além do Json.
-			   """.formatted(feedback, functionalityCodes.toString());
+	            Um exemplo de Json é o seguinte:
+	            {
+	                "sentiment": "POSITIVO",
+	                "requestedFeatures": [
+	                    {
+	                        "code": "EDITAR_PERFIL",
+	                        "reason": "O usuário gostaria de realizar a edição do próprio perfil"
+	                    }
+	                ],
+	                "customResponse": "Obrigado pelo seu feedback positivo! Ficamos felizes em saber que você está gostando do Alumind. Vamos considerar sua sugestão de facilitar a edição do perfil para futuras atualizações."
+	            }
+	            
+	            A resposta deve ser um JSON válido, sem nenhum texto adicional além do JSON.
+	           """.formatted(feedback, String.join(", ", functionalityCodes));
 	}
 }

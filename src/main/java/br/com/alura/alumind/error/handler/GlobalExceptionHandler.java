@@ -35,6 +35,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneralException(Exception ex) {
+    	ex.printStackTrace();
     	var error = ErrorResponse.internalServerError().setMessage(String.format("Um erro inesperado ocorreu: %s", ex.getMessage()));
         return ResponseEntity.internalServerError().body(error);
     }

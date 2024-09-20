@@ -73,7 +73,8 @@ public class FeedbackService {
 
 	private void saveAllNewFunctionalityCodes(Set<String> functionalityCodes, Feedback feedback) {
 		List<FunctionalityCode> newFunctionalityCodes = new ArrayList<>();
-        for (var code : feedback.getRequestedFeatures().stream().map(FeatureRequest::getCode).toList()) {
+		List<String> requestedFeatureFunctionalityCodes = feedback.getRequestedFeatures().stream().map(FeatureRequest::getCode).toList();
+        for (var code : requestedFeatureFunctionalityCodes) {
         	if (!functionalityCodes.contains(code)) {
         		newFunctionalityCodes.add(new FunctionalityCode(code));
         	}

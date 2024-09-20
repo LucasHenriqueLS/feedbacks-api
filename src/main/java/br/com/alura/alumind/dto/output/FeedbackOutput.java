@@ -11,5 +11,5 @@ public record FeedbackOutput (
 	String feedback,
 	Sentiment sentiment,
 	@JsonProperty("requested_features") List<FeatureRequestOutput> requestedFeatures,
-	String customResponse
+	@JsonProperty("custom_response") String customResponse
 ) { }
