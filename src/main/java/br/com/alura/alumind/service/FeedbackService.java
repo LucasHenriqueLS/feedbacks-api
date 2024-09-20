@@ -61,7 +61,7 @@ public class FeedbackService {
         
         var functionalityCodes = functionalityCodeRepository.findAll().stream().map(FunctionalityCode::getCode).collect(Collectors.toSet());
 
-        var feedback = llmService.analyzeFeedback(input.getFeedback(), functionalityCodes);
+        var feedback = llmService.analyzeFeedback(input.getFeedback(), functionalityCodes, 3);
         
         saveAllNewFunctionalityCodes(functionalityCodes, feedback);
 

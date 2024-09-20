@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.alura.alumind.dto.request.LLMRequest;
@@ -34,10 +35,19 @@ public class LLMService {
         return "SPAM".equalsIgnoreCase(requestLLM(getIsSpamContent(feedback)));
     }
 
-	public Feedback analyzeFeedback(String feedback, Set<String> functionalityCodes) throws Exception {
-        return objectMapper.readValue(requestLLM(getAnalyzeFeedbackContent(feedback, functionalityCodes)), Feedback.class);
+	public Feedback analyzeFeedback(String feedback, Set<String> functionalityCodes, Integer attempts) throws Exception {
+        try {
+			return objectMapper.readValue(requestLLM(getAnalyzeFeedbackContent(feedback, functionalityCodes)), Feedback.class);
+		} catch (Exception e) {
+			// Se o LLM não retornar a resposta em um formato JSON válido, ou ocorrer algum outro erro com a API da OpenAI, tenta novamente, até um limite de "attempts" tentativas.
+			e.printStackTrace();
+        	if (attempts > 0) {
+        		return analyzeFeedback(feedback, functionalityCodes, --attempts);	            		
+        	}
+        	throw e;
+		}
     }
-	
+
 	private String requestLLM(String content) {
 		var uri = getUrl();
 		var headers = getHeaders();
